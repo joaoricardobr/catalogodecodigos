@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Site de Cards de Código</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        :root {
+            --primary-color: #4a00e0;
+            --secondary-color: #ff3e6c;
+            --accent-color: #00ff88;
+            --text-color: #ffffff;
+            --bg-color: #0f0c29;
+            --card-bg-color: #24243e;
+            --filter-bg-color: #1a1a2e;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --light-theme-bg: #f0f0f0;
+            --light-theme-text: #333;
+            --light-theme-card-bg: #ffffff;
+            --light-theme-filter-bg: #e6f0ff;
+            --light-theme-border: #333;
+            --sun-color: #ffeb3b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--bg-color) 0%, #141e30 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        body.login-visible {
+            background: linear-gradient(137deg, rgb(2,0,36) 33%, rgba(9,9,121,1) 65%, rgba(0,212,255,1) 92%);
+            background-size: 200% 200%;
+            animation: gradientAnimation 10s ease infinite;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        body.light-theme {
+            background: var(--light-theme-bg);
+            color: var(--light-theme-text);
+        }
+
+        body.light-theme header,
+        body.light-theme footer,
+        body.light-theme #search-bar,
+        body.light-theme #add-edit-card,
+        body.light-theme .card {
+            background: var(--light-theme-card-bg);
+            border: 1px solid var(--light-theme-border);
+        }
+
+        body.light-theme #filter-bar {
+            background: var(--light-theme-filter-bg);
+            border: 1px solid var(--light-theme-border);
+        }
+
+        body.light-theme h1,
+        body.light-theme h2,
+        body.light-theme h3 {
+            background: none;
+            -webkit-text-fill-color: var(--light-theme-text);
+        }
+
+        body.light-theme #theme-toggle i.fa-sun {
+            color: var(--sun-color);
+        }
+
+        body.light-theme #settings-toggle i,
+        body.light-theme #logout-button i,
+        body.light-theme #view-options button i,
+        body.light-theme #save-button i,
+        body.light-theme #cancel-button i,
+        body.light-theme .card-actions button i,
+        body.light-theme #scroll-top-button i {
+            color: var(--primary-color);
+        }
+
+        header {
+            background: var(--card-bg-color);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        header h1 {
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: clamp(0.5rem, 2vw, 1rem);
+            align-items: center;
+            position: relative;
+        }
+
+        #theme-toggle,
+        #logout-button,
+        #settings-toggle,
+        #translate-toggle {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            padding: 0.5rem;
+        }
+
+        #logout-button {
+            background: linear-gradient(45deg, var(--secondary-color), #ff6b6b);
+            border-radius: 25px;
+            padding: clamp(0.4rem, 1.5vw, 0.5rem) clamp(0.8rem, 2vw, 1rem);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        #theme-toggle:hover,
+        #logout-button:hover,
+        #settings-toggle:hover,
+        #translate-toggle:hover {
+            transform: translateY(-2px);
+        }
+
+        #translate-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--card-bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            display: none;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 1000;
+            min-width: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) var(--card-bg-color);
+        }
+
+        #translate-menu.active {
+            display: flex;
+        }
+
+        #translate-menu button {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            padding: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.3s ease;
+        }
+
+        #translate-menu button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        #settings-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--card-bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+            z-index: 1000;
+            min-width: 250px;
+            max-height: 400px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) var(--card-bg-color);
+        }
+
+        #settings-menu.active {
+            display: flex;
+        }
+
+        #settings-menu label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        #settings-menu input[type="color"] {
+            width: 50px;
+            height: 30px;
+            border: none;
+            cursor: pointer;
+        }
+
+        #settings-menu button {
+            padding: 0.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+            color: var(--text-color);
+            transition: transform 0.3s ease;
+        }
+
+        #settings-menu button:hover {
+            transform: translateY(-2px);
+        }
+
+        #scroll-top-button {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: clamp(40px, 10vw, 50px);
+            height: clamp(40px, 10vw, 50px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+            z-index: 1000;
+            font-size: clamp(1rem, 3vw, 1.2rem);
+        }
+
+        #scroll-top-button.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #scroll-top-button:hover {
+            transform: translateY(-5px);
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        #login-section {
+            background: rgba(36, 36, 62, 0.95);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+            margin: auto;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #login-section h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #login-section input {
+            width: 100%;
+            padding: 0.8rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+            border-radius: 8px;
+            transition: border-color 0.3s ease;
+        }
+
+        #login-section input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        #login-section button {
+            width: 100%;
+            padding: 0.8rem;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            border-radius: 8px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        #login-section button:hover {
+            transform: translateY(-2px);
+        }
+
+        #search-bar {
+            display: flex;
+            gap: 1rem;
+            background: var(--card-bg-color);
+            padding: 1rem;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        #search-bar input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+            border-radius: 8px;
+        }
+
+        #view-options button {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            font-size: clamp(1rem, 2vw, 1.2rem);
+        }
+
+        #view-options button:hover {
+            color: var(--accent-color);
+        }
+
+        #add-edit-card {
+            background: var(--card-bg-color);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            width: 100%;
+            max-width: 600px;
+            border: 1px solid var(--border-color);
+        }
+
+        #add-edit-card h2 {
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+
+        #preview-container {
+            width: 100%;
+            height: 200px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        #preview-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: white;
+        }
+
+        #add-edit-card input,
+        #add-edit-card textarea {
+            width: 100%;
+            padding: 0.8rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+            border-radius: 8px;
+        }
+
+        #add-edit-card textarea {
+            height: 120px;
+            resize: vertical;
+        }
+
+        #language-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        #language-checkboxes label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        #language-checkboxes input[type="checkbox"] {
+            accent-color: var(--primary-color);
+        }
+
+        #add-edit-card button {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        #save-button {
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+        }
+
+        #cancel-button {
+            background: linear-gradient(45deg, var(--secondary-color), #ff6b6b);
+        }
+
+        #save-button:hover,
+        #cancel-button:hover {
+            transform: translateY(-2px);
+        }
+
+        #card-list {
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        #card-list h2 {
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #filter-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background: var(--filter-bg-color);
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+        }
+
+        #filter-bar select {
+            padding: 0.8rem;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            width: 100%;
+        }
+
+        .cards-container.list-view .card {
+            grid-template-columns: 1fr;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card {
+            background: var(--card-bg-color);
+            border-radius: 15px;
+            padding: 1.5rem;
+            position: relative;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h3 {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card .code-container {
+            display: none;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .card pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-size: 0.9rem;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-actions button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .card-actions button:hover {
+            transform: translateY(-2px);
+        }
+
+        .card-actions .copy-button {
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+        }
+
+        .card-actions .edit-button {
+            background: linear-gradient(45deg, #ff8a00, #e52e71);
+        }
+
+        .card-actions .delete-button {
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+        }
+
+        .card .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .card .tag {
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+            color: var(--text-color);
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            text-transform: lowercase;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--card-bg-color);
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            border: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <header style="display: none;">
+        <h1>Meu Site de Cards de Código</h1>
+        <div class="header-actions">
+            <button id="theme-toggle" title="Alternar tema"><i class="fas fa-moon"></i></button>
+            <button id="translate-toggle" title="Traduzir"><i class="fas fa-globe"></i></button>
+            <div id="translate-menu">
+                <button data-lang="pt"><img src="https://flagcdn.com/w20/br.png" alt="Português"> Português</button>
+                <button data-lang="en"><img src="https://flagcdn.com/w20/us.png" alt="English"> English</button>
+                <button data-lang="es"><img src="https://flagcdn.com/w20/es.png" alt="Español"> Español</button>
+                <button data-lang="fr"><img src="https://flagcdn.com/w20/fr.png" alt="Français"> Français</button>
+                <button data-lang="de"><img src="https://flagcdn.com/w20/de.png" alt="Deutsch"> Deutsch</button>
+                <button data-lang="it"><img src="https://flagcdn.com/w20/it.png" alt="Italiano"> Italiano</button>
+                <button data-lang="ja"><img src="https://flagcdn.com/w20/jp.png" alt="日本語"> 日本語</button>
+                <button data-lang="zh"><img src="https://flagcdn.com/w20/cn.png" alt="中文"> 中文</button>
+                <button data-lang="ru"><img src="https://flagcdn.com/w20/ru.png" alt="Русский"> Русский</button>
+            </div>
+            <button id="settings-toggle" title="Configurações"><i class="fas fa-cog"></i></button>
+            <div id="settings-menu">
+                <label>Cor Primária: <input type="color" id="primary-color-picker" value="#4a00e0"></label>
+                <label>Cor Secundária: <input type="color" id="secondary-color-picker" value="#ff3e6c"></label>
+                <label>Cor de Destaque: <input type="color" id="accent-color-picker" value="#00ff88"></label>
+                <label>Cor do Texto: <input type="color" id="text-color-picker" value="#ffffff"></label>
+                <label>Cor de Fundo: <input type="color" id="bg-color-picker" value="#0f0c29"></label>
+                <label>Cor dos Cards: <input type="color" id="card-bg-color-picker" value="#24243e"></label>
+                <label>Cor dos Filtros: <input type="color" id="filter-bg-color-picker" value="#1a1a2e"></label>
+                <label>Cor da Borda: <input type="color" id="border-color-picker" value="#ffffff19"></label>
+                <label>Cor de Fundo Claro: <input type="color" id="light-theme-bg-picker" value="#f0f0f0"></label>
+                <label>Cor do Texto Claro: <input type="color" id="light-theme-text-picker" value="#333333"></label>
+                <label>Cor dos Cards Claro: <input type="color" id="light-theme-card-bg-picker" value="#ffffff"></label>
+                <label>Cor dos Filtros Claro: <input type="color" id="light-theme-filter-bg-picker" value="#e6f0ff"></label>
+                <label>Cor da Borda Claro: <input type="color" id="light-theme-border-picker" value="#333333"></label>
+                <button id="reset-theme">Restaurar Tema Original</button>
+                <button id="backup-theme">Fazer Backup do Tema</button>
+                <button id="restore-theme">Restaurar Backup do Tema</button>
+            </div>
+            <button id="logout-button"><i class="fas fa-sign-out-alt"></i> Sair</button>
+        </div>
+    </header>
+
+    <main>
+        <section id="login-section">
+            <h2>Login</h2>
+            <input type="email" id="email-input" placeholder="Email" value="ricardoromanos1489@hotmail.com">
+            <input type="password" id="password-input" placeholder="Senha" value="rik159">
+            <button id="login-button">Entrar</button>
+        </section>
+
+        <section id="search-bar" style="display: none;">
+            <input type="text" id="search-input" placeholder="Buscar cards...">
+            <div id="view-options">
+                <button id="grid-view-button"><i class="fas fa-th-large"></i></button>
+                <button id="list-view-button"><i class="fas fa-list"></i></button>
+            </div>
+        </section>
+
+        <section id="add-edit-card" style="display: none;">
+            <h2>Adicionar/Editar Card</h2>
+            <div id="preview-container">
+                <iframe id="preview-iframe"></iframe>
+            </div>
+            <input type="hidden" id="card-id">
+            <input type="text" id="card-title" placeholder="Título do Card">
+            <textarea id="card-code" placeholder="Código"></textarea>
+            <div id="language-checkboxes">
+                <label><input type="checkbox" name="language" value="html"> HTML</label>
+                <label><input type="checkbox" name="language" value="css"> CSS</label>
+                <label><input type="checkbox" name="language" value="javascript"> JavaScript</label>
+                <label><input type="checkbox" name="language" value="python"> Python</label>
+                <label><input type="checkbox" name="language" value="java"> Java</label>
+                <label><input type="checkbox" name="language" value="c"> C</label>
+                <label><input type="checkbox" name="language" value="cpp"> C++</label>
+                <label><input type="checkbox" name="language" value="csharp"> C#</label>
+                <label><input type="checkbox" name="language" value="php"> PHP</label>
+                <label><input type="checkbox" name="language" value="ruby"> Ruby</label>
+                <label><input type="checkbox" name="language" value="go"> Go</label>
+                <label><input type="checkbox" name="language" value="swift"> Swift</label>
+                <label><input type="checkbox" name="language" value="kotlin"> Kotlin</label>
+                <label><input type="checkbox" name="language" value="typescript"> TypeScript</label>
+                <label><input type="checkbox" name="language" value="rust"> Rust</label>
+                <label><input type="checkbox" name="language" value="scala"> Scala</label>
+                <label><input type="checkbox" name="language" value="perl"> Perl</label>
+                <label><input type="checkbox" name="language" value="lua"> Lua</label>
+                <label><input type="checkbox" name="language" value="r"> R</label>
+                <label><input type="checkbox" name="language" value="matlab"> MATLAB</label>
+                <label><input type="checkbox" name="language" value="sql"> SQL</label>
+                <label><input type="checkbox" name="language" value="bash"> Bash</label>
+                <label><input type="checkbox" name="language" value="dart"> Dart</label>
+                <label><input type="checkbox" name="language" value="elixir"> Elixir</label>
+                <label><input type="checkbox" name="language" value="haskell"> Haskell</label>
+                <label><input type="checkbox" name="language" value="groovy"> Groovy</label>
+                <label><input type="checkbox" name="language" value="objective-c"> Objective-C</label>
+                <label><input type="checkbox" name="language" value="powershell"> PowerShell</label>
+                <label><input type="checkbox" name="language" value="vb"> Visual Basic</label>
+                <label><input type="checkbox" name="language" value="assembly"> Assembly</label>
+            </div>
+            <button id="save-button"><i class="fas fa-save"></i> Salvar</button>
+            <button id="cancel-button"><i class="fas fa-times"></i> Cancelar</button>
+        </section>
+
+        <section id="card-list" style="display: none;">
+            <h2>Meus Cards</h2>
+            <div id="filter-bar">
+                <select id="filter-language">
+                    <option value="">Filtrar por linguagem</option>
+                    <option value="html">HTML</option>
+                    <option value="css">CSS</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="python">Python</option>
+                    <option value="java">Java</option>
+                    <option value="c">C</option>
+                    <option value="cpp">C++</option>
+                    <option value="csharp">C#</option>
+                    <option value="php">PHP</option>
+                    <option value="ruby">Ruby</option>
+                    <option value="go">Go</option>
+                    <option value="swift">Swift</option>
+                    <option value="kotlin">Kotlin</option>
+                    <option value="typescript">TypeScript</option>
+                    <option value="rust">Rust</option>
+                    <option value="scala">Scala</option>
+                    <option value="perl">Perl</option>
+                    <option value="lua">Lua</option>
+                    <option value="r">R</option>
+                    <option value="matlab">MATLAB</option>
+                    <option value="sql">SQL</option>
+                    <option value="bash">Bash</option>
+                    <option value="dart">Dart</option>
+                    <option value="elixir">Elixir</option>
+                    <option value="haskell">Haskell</option>
+                    <option value="groovy">Groovy</option>
+                    <option value="objective-c">Objective-C</option>
+                    <option value="powershell">PowerShell</option>
+                    <option value="vb">Visual Basic</option>
+                    <option value="assembly">Assembly</option>
+                </select>
+                <select id="filter-tag">
+                    <option value="">Filtrar por tag</option>
+                </select>
+                <select id="filter-sort">
+                    <option value="">Ordenar por</option>
+                    <option value="title-asc">Título (A-Z)</option>
+                    <option value="title-desc">Título (Z-A)</option>
+                    <option value="date-asc">Data (Mais antigo)</option>
+                    <option value="date-desc">Data (Mais recente)</option>
+                </select>
+            </div>
+            <div class="cards-container" id="cards-container">
+                <!-- Cards serão adicionados aqui -->
+            </div>
+        </section>
+    </main>
+
+    <button id="scroll-top-button" title="Subir ao topo"><i class="fas fa-chevron-up"></i></button>
+
+    <footer style="display: none;">
+        <p>© 2026 Meu Site de Cards de Código</p>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <script src="script.js"></script>
+    <script>
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({ pageLanguage: 'pt', autoDisplay: false }, 'google_translate_element');
+        }
+    </script>
+</body>
+</html>
